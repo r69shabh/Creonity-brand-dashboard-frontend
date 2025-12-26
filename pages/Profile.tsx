@@ -19,11 +19,6 @@ const DEPARTMENTS = [
     { id: '4', name: 'Executive', members: 1, color: 'bg-amber-500' },
 ];
 
-const CHAT_MESSAGES = [
-    { id: '1', sender: 'Sarah Williams', avatar: 'https://randomuser.me/api/portraits/women/44.jpg', message: 'The new campaign with @alexcreates is performing great! 📈', time: '10:30 AM', isMe: false },
-    { id: '2', sender: 'You', message: 'That\'s awesome! Let\'s schedule a review meeting for Friday.', time: '10:32 AM', isMe: true },
-    { id: '3', sender: 'Michael Brown', avatar: 'https://randomuser.me/api/portraits/men/45.jpg', message: 'I\'ll prepare the analytics report by tomorrow.', time: '10:35 AM', isMe: false },
-];
 
 const PERMISSION_OPTIONS = [
     { id: 'campaigns', label: 'Campaigns', icon: 'campaign' },
@@ -36,13 +31,12 @@ const PERMISSION_OPTIONS = [
 
 const ROLE_OPTIONS = ['Owner', 'Admin', 'Manager', 'Member', 'Viewer'];
 
-type Tab = 'profile' | 'team' | 'groups' | 'chat';
+type Tab = 'profile' | 'team' | 'groups';
 
 const Profile: React.FC = () => {
     const [activeTab, setActiveTab] = useState<Tab>('profile');
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showMemberModal, setShowMemberModal] = useState<string | null>(null);
-    const [chatMessage, setChatMessage] = useState('');
 
     const selectedMember = TEAM_MEMBERS.find(m => m.id === showMemberModal);
 
@@ -50,7 +44,6 @@ const Profile: React.FC = () => {
         { id: 'profile', label: 'Company Profile', icon: 'business' },
         { id: 'team', label: 'Team Members', icon: 'group' },
         { id: 'groups', label: 'Departments', icon: 'folder_shared' },
-        { id: 'chat', label: 'Team Chat', icon: 'forum' },
     ];
 
     const getStatusColor = (status: string) => {
@@ -349,105 +342,6 @@ const Profile: React.FC = () => {
                 </div>
             )}
 
-            {/* Team Chat Tab */}
-            {activeTab === 'chat' && (
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-280px)]">
-                    {/* Chat Channels */}
-                    <Card className="lg:col-span-1" padding="p-0">
-                        <div className="p-4 border-b border-border-color dark:border-gray-700">
-                            <h3 className="font-medium text-text-primary dark:text-white">Channels</h3>
-                        </div>
-                        <div className="p-2">
-                            {[
-                                { name: '# general', unread: 3 },
-                                { name: '# marketing', unread: 0 },
-                                { name: '# campaigns', unread: 1 },
-                                { name: '# announcements', unread: 0 },
-                            ].map((channel, i) => (
-                                <button key={i} className={`w-full px-3 py-2 rounded-lg text-left flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 ${i === 0 ? 'bg-primary/10 text-primary' : 'text-text-secondary dark:text-gray-400'}`}>
-                                    <span className="text-sm font-medium">{channel.name}</span>
-                                    {channel.unread > 0 && (
-                                        <span className="bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{channel.unread}</span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                        <div className="p-4 border-t border-border-color dark:border-gray-700">
-                            <h3 className="font-medium text-text-primary dark:text-white mb-2">Direct Messages</h3>
-                            <div className="space-y-1">
-                                {TEAM_MEMBERS.slice(0, 3).map(member => (
-                                    <button key={member.id} className="w-full px-3 py-2 rounded-lg text-left flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        <div className="relative">
-                                            <img src={member.avatar} alt={member.name} className="w-7 h-7 rounded-full object-cover" />
-                                            <div className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white dark:border-gray-800 ${getStatusColor(member.status)}`}></div>
-                                        </div>
-                                        <span className="text-sm text-text-primary dark:text-white truncate">{member.name}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </Card>
-
-                    {/* Chat Messages */}
-                    <Card className="lg:col-span-3 flex flex-col" padding="p-0">
-                        {/* Chat Header */}
-                        <div className="p-4 border-b border-border-color dark:border-gray-700 flex items-center justify-between">
-                            <div>
-                                <h3 className="font-medium text-text-primary dark:text-white"># general</h3>
-                                <p className="text-xs text-text-secondary dark:text-gray-400">5 members • General team discussions</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                                    <span className="material-symbols-outlined text-[18px] text-text-secondary">search</span>
-                                </button>
-                                <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                                    <span className="material-symbols-outlined text-[18px] text-text-secondary">info</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                            {CHAT_MESSAGES.map(msg => (
-                                <div key={msg.id} className={`flex gap-3 ${msg.isMe ? 'flex-row-reverse' : ''}`}>
-                                    {!msg.isMe && (
-                                        <img src={msg.avatar} alt={msg.sender} className="w-8 h-8 rounded-full object-cover shrink-0" />
-                                    )}
-                                    <div className={`max-w-[70%] ${msg.isMe ? 'text-right' : ''}`}>
-                                        {!msg.isMe && <p className="text-xs font-medium text-text-primary dark:text-white mb-1">{msg.sender}</p>}
-                                        <div className={`inline-block px-4 py-2 rounded-2xl ${msg.isMe ? 'bg-primary text-white rounded-br-md' : 'bg-gray-100 dark:bg-gray-700 text-text-primary dark:text-white rounded-bl-md'}`}>
-                                            <p className="text-sm">{msg.message}</p>
-                                        </div>
-                                        <p className="text-[10px] text-text-secondary dark:text-gray-500 mt-1">{msg.time}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Message Input */}
-                        <div className="p-4 border-t border-border-color dark:border-gray-700">
-                            <div className="flex items-center gap-3">
-                                <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                                    <span className="material-symbols-outlined text-[20px] text-text-secondary">add</span>
-                                </button>
-                                <input
-                                    type="text"
-                                    placeholder="Type a message..."
-                                    value={chatMessage}
-                                    onChange={(e) => setChatMessage(e.target.value)}
-                                    className="flex-1 h-10 px-4 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-text-primary dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none text-sm"
-                                />
-                                <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                                    <span className="material-symbols-outlined text-[20px] text-text-secondary">sentiment_satisfied</span>
-                                </button>
-                                <button className="p-2.5 bg-primary text-white rounded-full hover:bg-primary-hover">
-                                    <span className="material-symbols-outlined text-[18px]">send</span>
-                                </button>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
-            )}
 
             {/* Invite Member Modal */}
             {showInviteModal && (
