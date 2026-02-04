@@ -1,338 +1,180 @@
 import React, { useState } from 'react';
+import { CREATORS, MESSAGES } from '../data/mockData';
 
-type MessageSection = 'creators' | 'team';
+const Messages: React.FC = () => {
+    const [activeChat, setActiveChat] = useState<string | null>(null);
+    const [messageInput, setMessageInput] = useState('');
 
-interface Conversation {
-    id: string;
-    name: string;
-    handle?: string;
-    avatar: string;
-    lastMessage: string;
-    time: string;
-    unread: number;
-    online: boolean;
-    type: 'creator' | 'team-member' | 'channel';
-    role?: string;
-}
-
-interface Message {
-    id: string;
-    senderId: string;
-    senderName?: string;
-    senderAvatar?: string;
-    content: string;
-    time: string;
-    isMe: boolean;
-}
-
-// Creator conversations
-const CREATOR_CONVERSATIONS: Conversation[] = [
-    { id: 'c1', name: 'Alex Morgan', handle: '@alexcreates', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face', lastMessage: 'I just uploaded the first draft of the video...', time: '2m ago', unread: 2, online: true, type: 'creator' },
-    { id: 'c2', name: 'Sarah Chen', handle: '@sarahlifestyle', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face', lastMessage: 'Perfect! I will start shooting tomorrow.', time: '1h ago', unread: 0, online: true, type: 'creator' },
-    { id: 'c3', name: 'David Kim', handle: '@davidtech', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face', lastMessage: 'Thanks for the feedback on the script!', time: '3h ago', unread: 0, online: false, type: 'creator' },
-    { id: 'c4', name: 'Jessica Taylor', handle: '@jessbeauty', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face', lastMessage: 'Looking forward to collaborating!', time: '1d ago', unread: 1, online: false, type: 'creator' },
-];
-
-// Team channels
-const TEAM_CHANNELS: Conversation[] = [
-    { id: 'ch1', name: '# general', avatar: '', lastMessage: 'Sarah: The new campaign is performing great!', time: '10m ago', unread: 3, online: true, type: 'channel' },
-    { id: 'ch2', name: '# marketing', avatar: '', lastMessage: 'Michael: Analytics report ready for review', time: '1h ago', unread: 0, online: true, type: 'channel' },
-    { id: 'ch3', name: '# campaigns', avatar: '', lastMessage: 'New campaign brief posted', time: '2h ago', unread: 1, online: true, type: 'channel' },
-    { id: 'ch4', name: '# announcements', avatar: '', lastMessage: 'Q4 goals shared', time: '1d ago', unread: 0, online: true, type: 'channel' },
-];
-
-// Team members for DMs
-const TEAM_MEMBERS: Conversation[] = [
-    { id: 't1', name: 'Sarah Williams', avatar: 'https://randomuser.me/api/portraits/women/44.jpg', lastMessage: 'Let\'s schedule a review meeting', time: '30m ago', unread: 1, online: true, type: 'team-member', role: 'Admin' },
-    { id: 't2', name: 'Michael Brown', avatar: 'https://randomuser.me/api/portraits/men/45.jpg', lastMessage: 'I\'ll prepare the analytics report', time: '2h ago', unread: 0, online: false, type: 'team-member', role: 'Manager' },
-    { id: 't3', name: 'Emily Davis', avatar: 'https://randomuser.me/api/portraits/women/68.jpg', lastMessage: 'Content draft is ready for approval', time: '3h ago', unread: 2, online: true, type: 'team-member', role: 'Member' },
-    { id: 't4', name: 'James Wilson', avatar: 'https://randomuser.me/api/portraits/men/22.jpg', lastMessage: 'Budget updated', time: '1d ago', unread: 0, online: false, type: 'team-member', role: 'Member' },
-];
-
-const CREATOR_MESSAGES: Message[] = [
-    { id: '1', senderId: '1', content: 'Hi! I am excited to work on this campaign.', time: '10:30 AM', isMe: false },
-    { id: '2', senderId: 'me', content: 'Great to have you on board! Let me know if you have any questions about the brief.', time: '10:32 AM', isMe: true },
-    { id: '3', senderId: '1', content: 'I have reviewed the brief. Just to confirm - you want a 10-15 minute in-depth review?', time: '10:45 AM', isMe: false },
-    { id: '4', senderId: 'me', content: 'Yes exactly! Focus on the key features we discussed. Feel free to add your personal touch.', time: '10:50 AM', isMe: true },
-    { id: '5', senderId: '1', content: 'Perfect! I will have the first draft ready by Friday.', time: '11:00 AM', isMe: false },
-    { id: '6', senderId: '1', content: 'I just uploaded the first draft of the video for your review. Let me know what you think!', time: '2:30 PM', isMe: false },
-];
-
-const TEAM_MESSAGES: Message[] = [
-    { id: '1', senderId: '1', senderName: 'Sarah Williams', senderAvatar: 'https://randomuser.me/api/portraits/women/44.jpg', content: 'The new campaign with @alexcreates is performing great! 📈', time: '10:30 AM', isMe: false },
-    { id: '2', senderId: 'me', content: 'That\'s awesome! Let\'s schedule a review meeting for Friday.', time: '10:32 AM', isMe: true },
-    { id: '3', senderId: '2', senderName: 'Michael Brown', senderAvatar: 'https://randomuser.me/api/portraits/men/45.jpg', content: 'I\'ll prepare the analytics report by tomorrow.', time: '10:35 AM', isMe: false },
-    { id: '4', senderId: '1', senderName: 'Sarah Williams', senderAvatar: 'https://randomuser.me/api/portraits/women/44.jpg', content: 'Perfect! Also, we should discuss the Q1 budget for influencer campaigns.', time: '10:40 AM', isMe: false },
-    { id: '5', senderId: 'me', content: 'Good idea. Let\'s add that to Friday\'s agenda.', time: '10:42 AM', isMe: true },
-];
-
-interface MessagesProps {
-    onMenuClick: () => void;
-}
-
-const Messages: React.FC<MessagesProps> = ({ onMenuClick }) => {
-    const [activeSection, setActiveSection] = useState<MessageSection>('creators');
-    const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(CREATOR_CONVERSATIONS[0]);
-    const [newMessage, setNewMessage] = useState('');
-    const [showMobileList, setShowMobileList] = useState(true);
-
-    const handleSend = () => {
-        if (!newMessage.trim()) return;
-        setNewMessage('');
-    };
-
-    const getConversations = () => {
-        if (activeSection === 'creators') return CREATOR_CONVERSATIONS;
-        return [...TEAM_CHANNELS, ...TEAM_MEMBERS];
-    };
-
-    const getMessages = () => {
-        if (activeSection === 'creators') return CREATOR_MESSAGES;
-        return TEAM_MESSAGES;
-    };
-
-    const handleSectionChange = (section: MessageSection) => {
-        setActiveSection(section);
-        const convs = section === 'creators' ? CREATOR_CONVERSATIONS : [...TEAM_CHANNELS, ...TEAM_MEMBERS];
-        setSelectedConversation(convs[0] || null);
-    };
-
-    const getTotalUnread = (convs: Conversation[]) => convs.reduce((acc, c) => acc + c.unread, 0);
-
-    const getRoleBadgeColor = (role: string) => {
-        switch (role) {
-            case 'Admin': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
-            case 'Manager': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
-            default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
-        }
-    };
+    const chatPartners = CREATORS.slice(0, 5).map((creator, i) => ({
+        id: creator.id,
+        name: creator.name,
+        avatar: creator.avatar,
+        lastMessage: i === 0 ? "Sounds good, I'll send the draft tomorrow." : "Hey, thanks for reaching out!",
+        time: i === 0 ? "10:42 AM" : "Yesterday",
+        unread: i === 0 ? 0 : i === 1 ? 2 : 0,
+        online: i < 2
+    }));
 
     return (
-        <div className="flex h-full">
-            {/* Conversation List */}
-            <div className={`w-full md:w-80 lg:w-96 border-r border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-gray-900 ${!showMobileList && selectedConversation ? 'hidden md:flex' : 'flex'}`}>
-                {/* Header */}
-                <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center gap-3">
-                    <button onClick={onMenuClick} className="lg:hidden p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
-                        <span className="material-symbols-outlined">menu</span>
-                    </button>
-                    <h2 className="text-lg font-bold text-text-primary dark:text-white">Messages</h2>
-                </div>
-
-                {/* Section Tabs */}
-                <div className="flex p-2 gap-1 border-b border-gray-200 dark:border-gray-800">
-                    <button
-                        onClick={() => handleSectionChange('creators')}
-                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all ${activeSection === 'creators'
-                            ? 'bg-primary text-white'
-                            : 'text-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800'
-                            }`}
-                    >
-                        <span className="material-symbols-outlined text-[18px]">person</span>
-                        Creators
-                        {getTotalUnread(CREATOR_CONVERSATIONS) > 0 && (
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${activeSection === 'creators' ? 'bg-white/20' : 'bg-primary text-white'}`}>
-                                {getTotalUnread(CREATOR_CONVERSATIONS)}
-                            </span>
-                        )}
-                    </button>
-                    <button
-                        onClick={() => handleSectionChange('team')}
-                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all ${activeSection === 'team'
-                            ? 'bg-primary text-white'
-                            : 'text-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800'
-                            }`}
-                    >
-                        <span className="material-symbols-outlined text-[18px]">groups</span>
-                        Team
-                        {getTotalUnread([...TEAM_CHANNELS, ...TEAM_MEMBERS]) > 0 && (
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${activeSection === 'team' ? 'bg-white/20' : 'bg-primary text-white'}`}>
-                                {getTotalUnread([...TEAM_CHANNELS, ...TEAM_MEMBERS])}
-                            </span>
-                        )}
-                    </button>
-                </div>
-
-                {/* Search */}
-                <div className="p-3">
+        <div className="max-w-[1600px] mx-auto h-[calc(100vh-64px)] p-6 lg:p-8 flex gap-6">
+            {/* Sidebar */}
+            <div className="w-80 bg-white dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-lg flex flex-col shrink-0 overflow-hidden shadow-sm">
+                <div className="p-4 border-b border-gray-200 dark:border-neutral-800">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Messages</h2>
                     <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-neutral-500">
                             <span className="material-symbols-outlined text-[18px]">search</span>
                         </span>
                         <input
                             type="text"
-                            placeholder={`Search ${activeSection === 'creators' ? 'creators' : 'team'}...`}
-                            className="w-full h-10 pl-10 pr-4 rounded-lg bg-gray-100 dark:bg-gray-800 border-none text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary/20 outline-none"
+                            placeholder="Search chats..."
+                            className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-md text-gray-900 dark:text-white focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none transition-all placeholder-gray-400 dark:placeholder-neutral-600"
                         />
                     </div>
                 </div>
-
-                {/* Conversations */}
                 <div className="flex-1 overflow-y-auto">
-                    {activeSection === 'team' && (
-                        <>
-                            {/* Channels Section */}
-                            <div className="px-3 py-2">
-                                <p className="text-[10px] font-bold text-text-secondary dark:text-gray-500 uppercase tracking-wider">Channels</p>
-                            </div>
-                            {TEAM_CHANNELS.map(conv => (
-                                <button
-                                    key={conv.id}
-                                    onClick={() => { setSelectedConversation(conv); setShowMobileList(false); }}
-                                    className={`w-full p-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${selectedConversation?.id === conv.id ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
-                                >
-                                    <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                                        <span className="material-symbols-outlined text-[20px] text-text-secondary dark:text-gray-400">tag</span>
-                                    </div>
-                                    <div className="flex-1 min-w-0 text-left">
-                                        <div className="flex items-center justify-between mb-0.5">
-                                            <span className="font-medium text-sm text-text-primary dark:text-white truncate">{conv.name}</span>
-                                            <span className="text-[10px] text-text-secondary dark:text-gray-400">{conv.time}</span>
-                                        </div>
-                                        <p className="text-xs text-text-secondary dark:text-gray-400 truncate">{conv.lastMessage}</p>
-                                    </div>
-                                    {conv.unread > 0 && (
-                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-white min-w-[18px] text-center">
-                                            {conv.unread}
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
-
-                            {/* Direct Messages Section */}
-                            <div className="px-3 py-2 mt-2">
-                                <p className="text-[10px] font-bold text-text-secondary dark:text-gray-500 uppercase tracking-wider">Direct Messages</p>
-                            </div>
-                        </>
-                    )}
-
-                    {(activeSection === 'creators' ? CREATOR_CONVERSATIONS : TEAM_MEMBERS).map(conv => (
-                        <button
-                            key={conv.id}
-                            onClick={() => { setSelectedConversation(conv); setShowMobileList(false); }}
-                            className={`w-full p-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${selectedConversation?.id === conv.id ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
+                    {chatPartners.map((chat) => (
+                        <div
+                            key={chat.id}
+                            onClick={() => setActiveChat(chat.id)}
+                            className={`p-4 border-b border-gray-100 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-900 cursor-pointer transition-colors ${activeChat === chat.id ? 'bg-gray-50 dark:bg-neutral-900' : ''}`}
                         >
-                            <div className="relative">
-                                <img src={conv.avatar} alt={conv.name} className="w-12 h-12 rounded-full object-cover" />
-                                {conv.online && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>}
-                            </div>
-                            <div className="flex-1 min-w-0 text-left">
-                                <div className="flex items-center justify-between mb-0.5">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-medium text-sm text-text-primary dark:text-white truncate">{conv.name}</span>
-                                        {conv.role && (
-                                            <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${getRoleBadgeColor(conv.role)}`}>
-                                                {conv.role}
+                            <div className="flex gap-3">
+                                <div className="relative">
+                                    <img src={chat.avatar} alt={chat.name} className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-neutral-700" />
+                                    {chat.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-black rounded-full"></span>}
+                                    </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-start mb-0.5">
+                                        <h3 className={`text-sm truncate ${chat.unread > 0 ? 'font-bold text-gray-900 dark:text-white' : 'font-medium text-gray-700 dark:text-gray-300'}`}>{chat.name}</h3>
+                                        <span className="text-[10px] text-gray-400 dark:text-neutral-500 font-mono whitespace-nowrap">{chat.time}</span>
+                                    </div>
+                                    <div className="flex justify-between items-end">
+                                        <p className={`text-xs truncate max-w-[140px] ${chat.unread > 0 ? 'font-medium text-gray-900 dark:text-white' : 'text-gray-500 dark:text-neutral-400'}`}>
+                                            {chat.lastMessage}
+                                        </p>
+                                        {chat.unread > 0 && (
+                                            <span className="bg-pop-pink text-white text-[10px] font-bold px-1.5 h-4 rounded-full flex items-center justify-center min-w-[16px]">
+                                                {chat.unread}
                                             </span>
                                         )}
                                     </div>
-                                    <span className="text-[10px] text-text-secondary dark:text-gray-400">{conv.time}</span>
                                 </div>
-                                {conv.handle && <p className="text-[10px] text-text-secondary dark:text-gray-500 mb-0.5">{conv.handle}</p>}
-                                <p className="text-xs text-text-secondary dark:text-gray-400 truncate">{conv.lastMessage}</p>
                             </div>
-                            {conv.unread > 0 && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-white min-w-[18px] text-center">
-                                    {conv.unread}
-                                </span>
-                            )}
-                        </button>
+                        </div>
                     ))}
                 </div>
             </div>
 
             {/* Chat Area */}
-            {selectedConversation ? (
-                <div className={`flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 ${showMobileList ? 'hidden md:flex' : 'flex'}`}>
+            <div className="flex-1 bg-white dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-lg flex flex-col overflow-hidden shadow-sm">
+                {activeChat ? (
+                    <>
                     {/* Chat Header */}
-                    <div className="h-16 px-4 flex items-center gap-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-                        <button onClick={() => setShowMobileList(true)} className="md:hidden p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
-                            <span className="material-symbols-outlined">arrow_back</span>
-                        </button>
-                        {selectedConversation.type === 'channel' ? (
-                            <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                                <span className="material-symbols-outlined text-[20px] text-text-secondary dark:text-gray-400">tag</span>
-                            </div>
-                        ) : (
-                            <img src={selectedConversation.avatar} alt={selectedConversation.name} className="w-10 h-10 rounded-full object-cover" />
-                        )}
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                                <p className="font-medium text-text-primary dark:text-white">{selectedConversation.name}</p>
-                                {selectedConversation.role && (
-                                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${getRoleBadgeColor(selectedConversation.role)}`}>
-                                        {selectedConversation.role}
-                                    </span>
-                                )}
-                            </div>
-                            <p className="text-xs text-text-secondary dark:text-gray-400">
-                                {selectedConversation.type === 'channel'
-                                    ? '5 members'
-                                    : selectedConversation.handle || (selectedConversation.online ? 'Online' : 'Offline')}
-                            </p>
-                        </div>
-                        <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-text-secondary">
-                            <span className="material-symbols-outlined">info</span>
-                        </button>
-                        <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-text-secondary">
-                            <span className="material-symbols-outlined">more_vert</span>
-                        </button>
-                    </div>
-
-                    {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                        {getMessages().map(msg => (
-                            <div key={msg.id} className={`flex gap-3 ${msg.isMe ? 'flex-row-reverse' : ''}`}>
-                                {!msg.isMe && msg.senderAvatar && activeSection === 'team' && (
-                                    <img src={msg.senderAvatar} alt={msg.senderName} className="w-8 h-8 rounded-full object-cover shrink-0" />
-                                )}
-                                <div className={`max-w-[70%] ${msg.isMe ? 'text-right' : ''}`}>
-                                    {!msg.isMe && msg.senderName && activeSection === 'team' && (
-                                        <p className="text-xs font-medium text-text-primary dark:text-white mb-1">{msg.senderName}</p>
-                                    )}
-                                    <div className={`inline-block px-4 py-2.5 rounded-2xl ${msg.isMe ? 'bg-primary text-white rounded-br-md' : 'bg-white dark:bg-gray-800 text-text-primary dark:text-white rounded-bl-md shadow-sm'}`}>
-                                        <p className="text-sm">{msg.content}</p>
-                                    </div>
-                                    <p className={`text-[10px] mt-1 ${msg.isMe ? 'text-text-secondary dark:text-gray-500' : 'text-text-secondary dark:text-gray-400'}`}>{msg.time}</p>
+                        <div className="p-4 border-b border-gray-200 dark:border-neutral-800 flex justify-between items-center bg-white/80 dark:bg-black/80 backdrop-blur-sm">
+                            <div className="flex items-center gap-3">
+                                <img src={chatPartners.find(c => c.id === activeChat)?.avatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-neutral-700" />
+                                <div>
+                                    <h3 className="font-bold text-gray-900 dark:text-white text-sm">{chatPartners.find(c => c.id === activeChat)?.name}</h3>
+                                    <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                                        Online
+                                    </p>
                                 </div>
                             </div>
-                        ))}
+                            <div className="flex items-center gap-2">
+                                <button className="p-2 text-gray-400 dark:text-neutral-500 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded transition-colors">
+                                    <span className="material-symbols-outlined">call</span>
+                                </button>
+                                <button className="p-2 text-gray-400 dark:text-neutral-500 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded transition-colors">
+                                    <span className="material-symbols-outlined">videocam</span>
+                                </button>
+                                <button className="p-2 text-gray-400 dark:text-neutral-500 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded transition-colors">
+                                    <span className="material-symbols-outlined">more_vert</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Messages */}
+                        <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50 dark:bg-neutral-900/50">
+                            <div className="space-y-6 max-w-3xl mx-auto">
+                                <div className="text-center text-[10px] text-gray-400 dark:text-neutral-600 font-mono uppercase tracking-wide my-4">Today, 10:23 AM</div>
+                                
+                                <div className="flex justify-end">
+                                    <div className="max-w-[80%]">
+                                        <div className="bg-black dark:bg-white text-white dark:text-black p-3.5 rounded-2xl rounded-tr-sm shadow-sm">
+                                            <p className="text-sm">Hi! Checking in on the draft for the TechFlow campaign. Is everything on track?</p>
+                                        </div>
+                                        <p className="text-[10px] text-gray-400 dark:text-neutral-500 text-right mt-1 font-mono">10:30 AM</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-start">
+                                    <img src={chatPartners.find(c => c.id === activeChat)?.avatar} alt="Avatar" className="w-8 h-8 rounded-full object-cover mr-3 self-end border border-gray-200 dark:border-neutral-700" />
+                                    <div className="max-w-[80%]">
+                                        <div className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-900 dark:text-white p-3.5 rounded-2xl rounded-tl-sm shadow-sm">
+                                            <p className="text-sm">Hey! Yes, absolutely. I'm just putting the finishing touches on the editing. It's looking great!</p>
+                                        </div>
+                                        <p className="text-[10px] text-gray-400 dark:text-neutral-500 mt-1 font-mono">10:35 AM</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-start">
+                                    <div className="w-8 mr-3"></div>
+                                    <div className="max-w-[80%]">
+                                        <div className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-900 dark:text-white p-3.5 rounded-2xl rounded-tl-sm shadow-sm">
+                                            <p className="text-sm">I'll have the first draft uploaded to the workroom by EOD today.</p>
+                                        </div>
+                                        <p className="text-[10px] text-gray-400 dark:text-neutral-500 mt-1 font-mono">10:36 AM</p>
+                                    </div>
                     </div>
 
-                    {/* Input */}
-                    <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
-                        <div className="flex items-center gap-3">
-                            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-text-secondary">
-                                <span className="material-symbols-outlined">add</span>
+                                <div className="flex justify-end">
+                                    <div className="max-w-[80%]">
+                                        <div className="bg-black dark:bg-white text-white dark:text-black p-3.5 rounded-2xl rounded-tr-sm shadow-sm">
+                                            <p className="text-sm">Perfect, looking forward to seeing it!</p>
+                                        </div>
+                                        <p className="text-[10px] text-gray-400 dark:text-neutral-500 text-right mt-1 font-mono">10:42 AM</p>
+                                    </div>
+                                </div>
+                            </div>
+                    </div>
+
+                        {/* Input Area */}
+                        <div className="p-4 bg-white dark:bg-black border-t border-gray-200 dark:border-neutral-800">
+                            <div className="max-w-3xl mx-auto flex gap-2 items-end">
+                                <button className="p-2 text-gray-400 dark:text-neutral-500 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded transition-colors">
+                                    <span className="material-symbols-outlined">add_circle</span>
                             </button>
-                            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-text-secondary">
-                                <span className="material-symbols-outlined">attach_file</span>
-                            </button>
-                            <input
-                                type="text"
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                                placeholder={`Message ${selectedConversation.name}...`}
-                                className="flex-1 h-11 px-4 rounded-full bg-gray-100 dark:bg-gray-800 border-none text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary/20 outline-none"
-                            />
-                            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-text-secondary">
-                                <span className="material-symbols-outlined">sentiment_satisfied</span>
-                            </button>
-                            <button onClick={handleSend} className="p-3 bg-primary text-white rounded-full hover:bg-primary-hover">
-                                <span className="material-symbols-outlined text-[20px]">send</span>
+                                <div className="flex-1 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg p-2 focus-within:ring-1 focus-within:ring-black dark:focus-within:ring-white transition-all">
+                                    <textarea
+                                        value={messageInput}
+                                        onChange={(e) => setMessageInput(e.target.value)}
+                                        placeholder="Type a message..."
+                                        rows={1}
+                                        className="w-full bg-transparent border-none focus:ring-0 p-0 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-600 resize-none max-h-32"
+                                        style={{ minHeight: '20px' }}
+                                    />
+                                </div>
+                                <button 
+                                    className={`p-2 rounded-lg transition-colors ${messageInput.trim() ? 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-600'}`}
+                                    disabled={!messageInput.trim()}
+                                >
+                                    <span className="material-symbols-outlined">send</span>
                             </button>
                         </div>
                     </div>
+                    </>
+                ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-gray-50/50 dark:bg-neutral-900/50">
+                        <div className="w-20 h-20 bg-white dark:bg-black rounded-full border border-gray-200 dark:border-neutral-800 flex items-center justify-center mb-6 shadow-sm">
+                            <span className="material-symbols-outlined text-[40px] text-gray-300 dark:text-neutral-700">chat_bubble_outline</span>
                 </div>
-            ) : (
-                <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-                    <div className="text-center">
-                        <span className="material-symbols-outlined text-5xl text-gray-300 dark:text-gray-600 mb-4">chat</span>
-                        <p className="text-text-secondary dark:text-gray-400">Select a conversation to start messaging</p>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Select a conversation</h3>
+                        <p className="text-gray-500 dark:text-neutral-500 max-w-sm">Choose a chat from the sidebar to start messaging your creators.</p>
                     </div>
+                )}
                 </div>
-            )}
         </div>
     );
 };

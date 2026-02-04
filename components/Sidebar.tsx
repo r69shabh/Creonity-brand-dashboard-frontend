@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
-import { NAV_ITEMS, DRIVE_FOLDERS, BRAND_AVATAR, BRAND_LOGO } from '../types';
+import { NAV_ITEMS, DRIVE_FOLDERS } from '../types';
 
 interface SidebarProps {
     mobileMenuOpen: boolean;
@@ -13,18 +13,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuOpen, on
     const navigate = useNavigate();
     const { addToast } = useToast();
     const [folders, setFolders] = useState(DRIVE_FOLDERS);
-    const [workspaceOpen, setWorkspaceOpen] = useState(false);
-
-    const brand = {
-        name: 'Acme Corporation',
-        industry: 'Technology',
-    };
-
-    const handleProfileClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        navigate('/profile');
-        setMobileMenuOpen(false);
-    };
+    const [collapsed, setCollapsed] = useState(false);
 
     const handleLogout = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -36,48 +25,69 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuOpen, on
         }
     };
 
-    const handleAddFolder = () => {
-        const name = window.prompt("Enter folder name:");
-        if (name) {
-            setFolders([...folders, { label: name, count: 0, color: 'text-gray-500' }]);
-        }
-    };
-
     return (
         <aside
             className={`
         fixed lg:static inset-y-0 left-0 z-30
-        w-[280px] flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-950/90 backdrop-blur-xl h-full
-        transition-transform duration-300 ease-in-out
+        flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 h-full
+        transition-all duration-300 ease-in-out
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${collapsed ? 'w-[80px]' : 'w-[260px]'}
       `}
         >
-            <div className="p-6">
+            {/* Header */}
+            <div className={`p-4 border-b border-gray-100 dark:border-gray-800 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
                 <div className="flex items-center gap-3">
-                    <img src={BRAND_LOGO} alt="Creonity Logo" className="size-10 object-contain shrink-0" onError={(e) => { e.currentTarget.src = 'https://ui-avatars.com/api/?name=C&background=075CD1&color=fff'; }} />
-                    <div>
-                        <span className="block text-lg font-display font-bold text-text-primary dark:text-white tracking-tight leading-none">Creonity</span>
-                        <span className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Brand Portal</span>
+                    <div className="w-8 h-8 bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-bold text-lg rounded-sm shrink-0">
+                        C
+                    </div>
+                    {!collapsed && (
+                        <div>
+                            <span className="block text-lg font-display font-bold text-gray-900 dark:text-white tracking-tight">Creonity</span>
+                            <span className="text-[10px] font-mono text-gray-500 dark:text-gray-400 uppercase tracking-widest">OS v2.0</span>
+                        </div>
+                    )}
+                </div>
+                {!collapsed && (
+                    <button onClick={() => setCollapsed(!collapsed)} className="text-gray-400 hover:text-black dark:text-gray-500 dark:hover:text-white hidden lg:block">
+                        <span className="material-symbols-outlined text-[20px]">first_page</span>
+                    </button>
+                )}
+            </div>
+
+            {/* Collapse Button (Visible when collapsed) */}
+            {collapsed && (
+                <button 
+                    onClick={() => setCollapsed(!collapsed)} 
+                    className="mx-auto mt-4 p-1.5 text-gray-400 hover:text-black dark:text-gray-500 dark:hover:text-white hidden lg:block hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
+                >
+                    <span className="material-symbols-outlined text-[20px]">last_page</span>
+                </button>
+            )}
+
+            {/* Search (Hidden when collapsed) */}
+            {!collapsed && (
+                <div className="px-4 py-4">
+                    <div className="relative group">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                            <span className="material-symbols-outlined text-[18px]">search</span>
+                        </span>
+                        <input
+                            className="w-full h-9 pl-9 pr-9 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-1 focus:ring-gray-300 dark:focus:ring-gray-600 focus:bg-white dark:focus:bg-gray-900 transition-all outline-none font-mono"
+                            placeholder="Search..."
+                            type="text"
+                        />
+                        <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-1.5">⌘K</kbd>
                     </div>
                 </div>
-            </div>
+            )}
 
-            <div className="px-4 mb-2">
-                <div className="relative group">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-blue transition-colors">
-                        <span className="material-symbols-outlined text-[20px]">search</span>
-                    </span>
-                    <input
-                        className="w-full h-10 pl-10 pr-10 rounded-xl bg-gray-50 dark:bg-gray-900 border-none ring-1 ring-gray-200 dark:ring-gray-700 text-sm text-text-primary dark:text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-brand-blue/50 transition-all shadow-sm outline-none"
-                        placeholder="Quick search..."
-                        type="text"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold border border-gray-200 dark:border-gray-700 rounded px-1.5 py-0.5 bg-white dark:bg-gray-800">⌘K</span>
-                </div>
-            </div>
-
-            <nav className="flex-1 px-3 flex flex-col gap-1 overflow-y-auto no-scrollbar py-4">
-                <div className="text-[11px] font-bold text-gray-400 px-4 py-2 uppercase tracking-widest">Menu</div>
+            <nav className="flex-1 px-3 flex flex-col gap-1 overflow-y-auto no-scrollbar mt-2">
+                {!collapsed && (
+                    <div className="text-[10px] font-mono font-medium text-gray-400 dark:text-gray-500 px-3 py-2 uppercase tracking-wider">
+                        Platform
+                    </div>
+                )}
 
                 {NAV_ITEMS.map((item) => (
                     <NavLink
@@ -85,77 +95,68 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuOpen, on
                         to={item.path}
                         onClick={() => setMobileMenuOpen(false)}
                         className={({ isActive }) => `
-              flex items-center justify-between px-4 py-2.5 rounded-xl font-medium transition-all group relative overflow-hidden
+              flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-3'} py-2.5 rounded-md transition-all group relative overflow-hidden text-sm font-medium
               ${isActive
-                                ? 'bg-brand-blue/10 text-brand-blue dark:text-white dark:bg-brand-blue/20'
-                                : 'text-text-secondary dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-text-primary dark:hover:text-white'
+                                ? 'bg-accent-yellow dark:bg-yellow-900/20 text-black dark:text-yellow-400 border-l-2 border-pop-yellow'
+                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white'
                             }
             `}
+                        title={collapsed ? item.label : ''}
                     >
                         {({ isActive }) => (
                             <>
-                                {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-brand-blue rounded-r-full" />}
-                                <div className="flex items-center gap-3 relative z-10">
-                                    <span className={`material-symbols-outlined text-[22px] ${isActive ? 'text-brand-blue dark:text-white' : 'group-hover:text-brand-blue dark:group-hover:text-white transition-colors'}`}>
+                                <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                                    <span className={`material-symbols-outlined text-[22px] ${isActive ? 'text-black dark:text-yellow-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white'}`}>
                                         {item.icon}
                                     </span>
-                                    <span className="font-display">{item.label}</span>
+                                    {!collapsed && <span>{item.label}</span>}
                                 </div>
-                                {item.badge && (
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm ${item.badgeColor || 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'}`}>
-                                        {item.badge}
-                                    </span>
-                                )}
+                                {!collapsed && isActive && <span className="w-1.5 h-1.5 rounded-full bg-pop-yellow"></span>}
                             </>
                         )}
                     </NavLink>
                 ))}
 
-                {/* Collapsible Workspace */}
-                <div className="mt-4">
-                    <button
-                        onClick={() => setWorkspaceOpen(!workspaceOpen)}
-                        className="w-full flex items-center justify-between px-4 py-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                    >
-                        <span>Workspace</span>
-                        <span className={`material-symbols-outlined text-[16px] transition-transform ${workspaceOpen ? 'rotate-180' : ''}`}>expand_more</span>
-                    </button>
+                {!collapsed && (
+                    <div className="text-[10px] font-mono font-medium text-gray-400 dark:text-gray-500 px-3 py-2 uppercase tracking-wider mt-6">
+                        Workspace
+                    </div>
+                )}
+                
+                {collapsed && <div className="border-t border-gray-100 dark:border-gray-800 my-4 mx-2"></div>}
 
-                    {workspaceOpen && (
-                        <div className="mt-1 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                            {folders.map((item, idx) => (
-                                <NavLink
-                                    key={idx}
-                                    to={`/drive/${item.label}`}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className={({ isActive }) => `
-                    flex items-center justify-between px-4 py-2 rounded-xl text-sm font-medium transition-all w-full text-left group
-                    ${isActive
-                                            ? 'bg-gray-100 dark:bg-gray-800/50 text-text-primary dark:text-white'
-                                            : 'text-text-secondary dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-text-primary dark:hover:text-white'
-                                        }
-                  `}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <span className={`material-symbols-outlined text-[18px] ${item.color} opacity-80 group-hover:opacity-100`}>folder</span>
-                                        {item.label}
-                                    </div>
-                                    <span className="text-[10px] font-bold text-gray-300 dark:text-gray-600">{item.count}</span>
-                                </NavLink>
-                            ))}
-                            <button onClick={handleAddFolder} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-text-secondary dark:text-gray-400 hover:text-primary transition-colors">
-                                <span className="material-symbols-outlined text-[18px]">add</span>
-                                Add Folder
-                            </button>
+                {folders.map((folder, i) => (
+                     <div 
+                        key={i} 
+                        className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white rounded-md cursor-pointer transition-colors group`}
+                        title={collapsed ? `${folder.label} (${folder.count})` : ''}
+                     >
+                        <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[18px] text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white">folder</span>
+                            {!collapsed && <span>{folder.label}</span>}
                         </div>
-                    )}
-                </div>
+                        {!collapsed && <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500">{folder.count}</span>}
+                     </div>
+                ))}
             </nav>
 
-            {/* Footer */}
-            <div className="p-4 mt-auto border-t border-gray-100 dark:border-gray-800">
-                <div className="text-[10px] text-center text-text-secondary dark:text-gray-500">
-                    © 2024 Creonity
+            {/* User Profile */}
+            <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+                <div className={`flex items-center gap-3 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors group ${collapsed ? 'justify-center' : ''}`}>
+                    <div className="w-8 h-8 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shrink-0 overflow-hidden rounded-sm relative">
+                        <img src="https://ui-avatars.com/api/?name=Brand&background=random" alt="Brand" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+                    </div>
+                    {!collapsed && (
+                        <>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate">Acme Corp</p>
+                                <p className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">admin@acme.com</p>
+                            </div>
+                            <button onClick={handleLogout} className="text-gray-400 hover:text-black dark:text-gray-500 dark:hover:text-white transition-colors">
+                                <span className="material-symbols-outlined text-[20px]">logout</span>
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
         </aside>
